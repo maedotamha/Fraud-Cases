@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Catching Fraudsters Before They Strike</title>
+<style>
+  body { font-family: 'Georgia', serif; max-width: 740px; margin: 60px auto; color: #292929; line-height: 1.8; font-size: 18px; }
+  h1 { font-size: 42px; font-weight: 700; line-height: 1.2; margin-bottom: 8px; }
+  h2 { font-size: 28px; font-weight: 700; margin-top: 56px; margin-bottom: 16px; border-bottom: 2px solid #e8e8e8; padding-bottom: 8px; }
+  h3 { font-size: 20px; font-weight: 700; margin-top: 36px; margin-bottom: 8px; color: #1a1a1a; }
+  .subtitle { font-size: 22px; color: #6b6b6b; margin-bottom: 6px; font-style: italic; }
+  .meta { font-size: 14px; color: #9b9b9b; margin-bottom: 48px; }
+  .lead { font-size: 21px; line-height: 1.6; color: #3d3d3d; margin-bottom: 40px; border-left: 4px solid #1a8917; padding-left: 20px; }
+  .callout { background: #fff8e7; border-left: 4px solid #f5a623; padding: 20px 24px; margin: 32px 0; border-radius: 4px; }
+  .callout strong { display: block; font-size: 15px; text-transform: uppercase; letter-spacing: 0.05em; color: #b07d1a; margin-bottom: 8px; }
+  .stat-box { display: inline-block; background: #f2fdf2; border: 1px solid #c3e6cb; border-radius: 8px; padding: 16px 24px; margin: 8px 8px 8px 0; text-align: center; }
+  .stat-box .number { font-size: 36px; font-weight: 700; color: #1a8917; display: block; }
+  .stat-box .label { font-size: 13px; color: #555; }
+  .danger-stat { background: #fff2f2; border-color: #f5c6cb; }
+  .danger-stat .number { color: #c0392b; }
+  table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 16px; }
+  th { background: #f7f7f7; text-align: left; padding: 10px 14px; font-weight: 700; border-bottom: 2px solid #ddd; }
+  td { padding: 10px 14px; border-bottom: 1px solid #eee; }
+  tr:last-child td { border-bottom: none; }
+  .highlight-row { background: #fff8e7; font-weight: 700; }
+  .highlight-row td:last-child { color: #c0392b; }
+  code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; font-size: 15px; }
+  pre { background: #1e1e1e; color: #d4d4d4; padding: 24px; border-radius: 8px; overflow-x: auto; font-size: 14px; line-height: 1.6; margin: 24px 0; }
+  pre .kw { color: #569cd6; }
+  pre .fn { color: #dcdcaa; }
+  pre .st { color: #ce9178; }
+  pre .cm { color: #6a9955; }
+  blockquote { border-left: 3px solid #292929; padding-left: 20px; margin: 32px 0; font-style: italic; color: #555; font-size: 20px; }
+  .finding { background: #f7f9ff; border: 1px solid #cfe2ff; border-radius: 8px; padding: 20px 24px; margin: 16px 0; }
+  .finding-number { font-size: 13px; text-transform: uppercase; font-weight: 700; color: #0d6efd; letter-spacing: 0.08em; }
+  .tag { display: inline-block; background: #e8f4f8; color: #1a6b8a; font-size: 13px; padding: 4px 10px; border-radius: 20px; margin-right: 6px; }
+  hr { border: none; border-top: 1px solid #e8e8e8; margin: 48px 0; }
+  .footer { font-size: 14px; color: #9b9b9b; margin-top: 64px; padding-top: 24px; border-top: 1px solid #e8e8e8; }
+</style>
+</head>
+<body>
+
+<p class="meta">
+  <span class="tag">Fraud Detection</span>
+  <span class="tag">Machine Learning</span>
+  <span class="tag">FinTech</span>
+  <span class="tag">Data Science</span>
+</p>
+
+<h1>Catching Fraudsters Before They Strike</h1>
+<p class="subtitle">Building a FinTech Fraud Detection System — Interim Report 1</p>
+<p class="meta">Maedot Amha · Adey Innovations Inc. · June 2026 · 10 min read</p>
+
+<p class="lead">
+  Fraudulent transactions are rare, sneaky, and expensive. In this first phase of Adey Innovations' fraud detection system, I analyzed 434,000 real-world transactions across two completely different data domains — and found signals so strong they could catch fraud before a single model is trained.
+</p>
+
+<hr>
+
+<h2>The Problem: Why Fraud Detection Is Genuinely Hard</h2>
+
+<p>
+  Fraud detection sits at the intersection of two painful trade-offs. <strong>False positives</strong> — flagging a legitimate purchase as fraud — frustrate real customers and erode trust. <strong>False negatives</strong> — missing actual fraud — cause direct financial loss. Getting the balance right requires more than a good model. It requires understanding the data deeply enough to build features that speak directly to how fraudsters actually behave.
+</p>
+
+<p>At Adey Innovations, we're building a unified detection capability across two very different transaction streams:</p>
+
+<ul>
+  <li><strong>E-commerce transactions</strong> with rich behavioral context — device IDs, signup times, IP addresses, browser fingerprints</li>
+  <li><strong>Bank credit card transactions</strong> where features are anonymized via PCA for regulatory compliance</li>
+</ul>
+
+<p>This report covers Phase 1: understanding both datasets, engineering features that capture how fraud actually manifests, and preparing our training sets correctly.</p>
+
+<hr>
+
+<h2>The Datasets: Two Very Different Imbalance Problems</h2>
+
+<div style="margin: 32px 0;">
+  <div class="stat-box">
+    <span class="number">151,112</span>
+    <span class="label">E-commerce transactions</span>
+  </div>
+  <div class="stat-box danger-stat">
+    <span class="number">9.36%</span>
+    <span class="label">E-commerce fraud rate</span>
+  </div>
+  <div class="stat-box">
+    <span class="number">283,726</span>
+    <span class="label">Credit card transactions</span>
+  </div>
+  <div class="stat-box danger-stat">
+    <span class="number">0.17%</span>
+    <span class="label">Credit card fraud rate</span>
+  </div>
+</div>
+
+<p>
+  These two datasets have radically different imbalance profiles. At 9.36%, the e-commerce data is moderately imbalanced — a real challenge, but workable. The credit card data, at 0.17%, is a 600:1 ratio. A model that predicts "legitimate" for every single transaction would achieve <strong>99.83% accuracy</strong> — while catching exactly zero fraudulent cases. This is precisely why overall accuracy is a useless metric for fraud detection, and why we evaluate on <strong>AUC-PR and F1-Score</strong> instead.
+</p>
+
+<hr>
+
+<h2>Part 1 — E-Commerce Fraud: What the Data Reveals</h2>
+
+<h3>1.1 Clean Data, Complex Patterns</h3>
+
+<p>
+  After loading <code>Fraud_Data.csv</code>, the first pass was encouraging: zero missing values, zero duplicate rows. We parsed <code>signup_time</code> and <code>purchase_time</code> as datetime objects and converted the float-encoded IP address field to 64-bit integers for the geolocation step.
+</p>
+
+<h3>1.2 Who Commits Fraud? Channel and Device Analysis</h3>
+
+<table>
+  <thead><tr><th>Acquisition Source</th><th>Transactions</th><th>Fraud Rate</th></tr></thead>
+  <tbody>
+    <tr class="highlight-row"><td>Direct</td><td>~45,000</td><td>10.54%</td></tr>
+    <tr><td>Ads</td><td>~38,000</td><td>9.21%</td></tr>
+    <tr><td>SEO</td><td>~68,000</td><td>8.93%</td></tr>
+  </tbody>
+</table>
+
+<p>
+  Users arriving directly — typing the URL or bypassing ad tracking — commit fraud at a noticeably higher rate. This could indicate automated bots, credential-stuffing attacks, or affiliates gaming direct traffic. The difference is modest, but consistent.
+</p>
+
+<hr>
+
+<h2>Part 2 — Geolocation: Turning IP Ranges Into Fraud Signals</h2>
+
+<p>
+  The IP-to-country mapping file contains 138,846 IP <em>ranges</em>, not individual addresses. This means a standard table join on exact values will fail — we need a range-based lookup.
+</p>
+
+<h3>The Technique: <code>pd.merge_asof</code></h3>
+
+<p>
+  The approach: convert every IP to a 64-bit integer, sort both tables on the lower bound, and use <code>merge_asof</code> to find the largest lower bound that is still ≤ each transaction's IP. A final bounds-check confirms the IP falls within the matched range.
+</p>
+
+<pre>
+<span class="cm"># Convert IPs to integers</span>
+fraud_df[<span class="st">'ip_int'</span>] = fraud_df[<span class="st">'ip_address'</span>].astype(np.int64)
+ip_df[<span class="st">'lower_int'</span>] = ip_df[<span class="st">'lower_bound_ip_address'</span>].astype(np.int64)
+ip_df[<span class="st">'upper_int'</span>] = ip_df[<span class="st">'upper_bound_ip_address'</span>].astype(np.int64)
+
+<span class="cm"># Range join — O(n log n), no row-by-row iteration</span>
+merged = pd.<span class="fn">merge_asof</span>(
+    fraud_sorted,
+    ip_sorted[[<span class="st">'lower_int'</span>, <span class="st">'upper_int'</span>, <span class="st">'country'</span>]],
+    left_on=<span class="st">'ip_int'</span>, right_on=<span class="st">'lower_int'</span>,
+    direction=<span class="st">'backward'</span>
+)
+
+<span class="cm"># Validate: ip_int must fall within the matched range</span>
+merged[<span class="st">'country'</span>] = merged.<span class="fn">apply</span>(
+    <span class="kw">lambda</span> r: r[<span class="st">'country'</span>] <span class="kw">if</span> r[<span class="st">'ip_int'</span>] &lt;= r[<span class="st">'upper_int'</span>] <span class="kw">else</span> <span class="st">'Unknown'</span>, axis=1
+)
+</pre>
+
+<h3>What the Geography Says About Fraud</h3>
+
+<table>
+  <thead><tr><th>Country</th><th>Transactions</th><th>Fraud Cases</th><th>Fraud Rate</th></tr></thead>
+  <tbody>
+    <tr class="highlight-row"><td>Luxembourg</td><td>72</td><td>28</td><td>38.9%</td></tr>
+    <tr class="highlight-row"><td>Ecuador</td><td>106</td><td>28</td><td>26.4%</td></tr>
+    <tr class="highlight-row"><td>Tunisia</td><td>118</td><td>31</td><td>26.3%</td></tr>
+    <tr class="highlight-row"><td>Peru</td><td>119</td><td>31</td><td>26.1%</td></tr>
+    <tr class="highlight-row"><td>Bolivia</td><td>53</td><td>13</td><td>24.5%</td></tr>
+    <tr><td colspan="3"><em>Global average</em></td><td>9.36%</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <strong>🌍 Business Recommendation Preview</strong>
+  Transactions originating from these five countries show fraud rates 2.5–4× the global average. A risk-tiered verification system — requiring additional authentication for high-fraud-origin IPs — could intercept a significant portion of fraud at near-zero cost to legitimate users from those regions.
+</div>
+
+<hr>
+
+<h2>Part 3 — Feature Engineering: Teaching the Model How Fraud Thinks</h2>
+
+<p>
+  Raw fields like <code>signup_time</code> and <code>ip_address</code> are useless directly. What matters is <em>what they imply</em> about the transaction's context. We engineered four families of features:
+</p>
+
+<h3>3.1 <code>time_since_signup</code> — The Single Most Powerful Signal</h3>
+
+<p>This feature measures the elapsed hours between account creation and the transaction:</p>
+
+<pre>
+fraud_df[<span class="st">'time_since_signup'</span>] = (
+    fraud_df[<span class="st">'purchase_time'</span>] - fraud_df[<span class="st">'signup_time'</span>]
+).dt.total_seconds() / 3600
+</pre>
+
+<p>The distribution is wide — median ~57 days, but with a long tail toward zero. Segmenting it reveals something extraordinary:</p>
+
+<table>
+  <thead><tr><th>Time Since Signup</th><th>Fraud Rate</th></tr></thead>
+  <tbody>
+    <tr class="highlight-row"><td>&lt; 1 hour</td><td>99.52% 🚨</td></tr>
+    <tr><td>1 – 6 hours</td><td>3.33%</td></tr>
+    <tr><td>6 – 24 hours</td><td>4.10%</td></tr>
+    <tr><td>1 – 7 days</td><td>4.46%</td></tr>
+    <tr><td>&gt; 7 days</td><td>4.57%</td></tr>
+  </tbody>
+</table>
+
+<blockquote>
+  Transactions placed within 1 hour of account creation are fraudulent 99.52% of the time. This is not a model prediction — it is a direct observation from the data.
+</blockquote>
+
+<p>
+  This pattern is consistent with a well-known fraud vector: attackers create throwaway accounts specifically for a one-time fraudulent purchase, then abandon the account. The sub-1-hour window is the telltale signature.
+</p>
+
+<h3>3.2 Transaction Velocity — <code>tx_count_24h</code></h3>
+
+<p>
+  We computed each user's cumulative transaction count up to each purchase. Legitimate users typically shop infrequently. A burst of transactions from a single account in a short window — credential stuffing, account takeover, or automated purchasing bots — is a strong fraud signal.
+</p>
+
+<h3>3.3 Temporal Features</h3>
+
+<p>
+  <code>hour_of_day</code> and <code>day_of_week</code> capture fraud patterns tied to operational rhythms: fraud teams have lower coverage at 3am on a Sunday; attackers know this.
+</p>
+
+<table>
+  <thead><tr><th>Feature</th><th>Fraud Mechanism</th></tr></thead>
+  <tbody>
+    <tr><td><code>time_since_signup</code></td><td>Throwaway accounts, synthetic identities</td></tr>
+    <tr><td><code>tx_count_24h</code></td><td>Account takeover, credential stuffing</td></tr>
+    <tr><td><code>hour_of_day</code></td><td>Off-hours automated attacks</td></tr>
+    <tr><td><code>country</code></td><td>Geographic risk concentration</td></tr>
+  </tbody>
+</table>
+
+<hr>
+
+<h2>Part 4 — Credit Card Data: When Features Are Hidden</h2>
+
+<h3>4.1 The Anonymization Challenge</h3>
+
+<p>
+  The <code>creditcard.csv</code> dataset contains 28 PCA-transformed features (V1–V28) — real behavioral signals that have been mathematically rotated to prevent reverse-engineering of customer data. We can work with them statistically, but interpreting them requires SHAP analysis (Phase 3).
+</p>
+
+<p>Only two features remain in their original form: <code>Amount</code> and <code>Time</code>.</p>
+
+<h3>4.2 The Card-Testing Pattern</h3>
+
+<table>
+  <thead><tr><th>Class</th><th>Mean Amount</th><th>Median Amount</th></tr></thead>
+  <tbody>
+    <tr><td>Legitimate (0)</td><td>$88.41</td><td>$22.00</td></tr>
+    <tr class="highlight-row"><td>Fraud (1)</td><td>$123.87</td><td>$9.82</td></tr>
+  </tbody>
+</table>
+
+<p>
+  Fraud has a higher mean but a much lower median. This bimodal distribution points to <strong>card testing</strong>: fraudsters validate a stolen card with a tiny transaction ($2–$10), confirm it works, then follow up with a large purchase. The $9.82 median is the fingerprint of that test transaction.
+</p>
+
+<h3>4.3 Which PCA Components Signal Fraud?</h3>
+
+<table>
+  <thead><tr><th>Feature</th><th>|Correlation with Fraud|</th></tr></thead>
+  <tbody>
+    <tr class="highlight-row"><td>V17</td><td>0.3135</td></tr>
+    <tr class="highlight-row"><td>V14</td><td>0.2934</td></tr>
+    <tr class="highlight-row"><td>V12</td><td>0.2507</td></tr>
+    <tr><td>V10</td><td>0.2070</td></tr>
+    <tr><td>V16</td><td>0.1872</td></tr>
+    <tr><td>V3</td><td>0.1823</td></tr>
+    <tr><td>V7</td><td>0.1723</td></tr>
+  </tbody>
+</table>
+
+<p>
+  V17 and V14 carry the strongest linear relationship with fraud — we expect them to dominate model feature importance. SHAP will help us understand whether their contribution is consistent or context-dependent (Phase 3).
+</p>
+
+<hr>
+
+<h2>Part 5 — The Preprocessing Pipeline</h2>
+
+<h3>5.1 The Golden Rule: Split Before You Resample</h3>
+
+<p>
+  One of the most common and damaging mistakes in fraud detection pipelines is applying oversampling <em>before</em> the train/test split. If SMOTE-generated samples appear in both training and test sets, the model appears to generalize well — but it is essentially memorizing synthetic test data. Every performance metric becomes meaningless.
+</p>
+
+<p><strong>Our rule: stratified split first, SMOTE second, test set untouched.</strong></p>
+
+<h3>5.2 Why SMOTE Over the Alternatives?</h3>
+
+<table>
+  <thead><tr><th>Method</th><th>Mechanism</th><th>Problem</th></tr></thead>
+  <tbody>
+    <tr><td>Random Oversampling</td><td>Duplicates minority rows</td><td>Model memorizes exact rows → overfitting</td></tr>
+    <tr><td>Random Undersampling</td><td>Removes majority rows</td><td>Discards real legitimate transaction data</td></tr>
+    <tr class="highlight-row"><td>SMOTE ✓</td><td>Interpolates new synthetic minority samples</td><td>Slightly slower; our chosen approach</td></tr>
+  </tbody>
+</table>
+
+<p>
+  SMOTE works by finding each fraud sample's k-nearest fraud neighbors and generating new synthetic points along the line segments connecting them. The result is a more diverse fraud representation that generalizes better than simple duplication.
+</p>
+
+<h3>5.3 Before and After SMOTE</h3>
+
+<table>
+  <thead><tr><th>Dataset</th><th>Before SMOTE (train)</th><th>After SMOTE (train)</th></tr></thead>
+  <tbody>
+    <tr><td>E-commerce</td><td>Legit: 109,568 / Fraud: 10,304</td><td>Legit: 109,568 / Fraud: 109,568 ✓</td></tr>
+    <tr><td>Credit card</td><td>Legit: 226,602 / Fraud: 374</td><td>Legit: 226,602 / Fraud: 226,602 ✓</td></tr>
+  </tbody>
+</table>
+
+<hr>
+
+<h2>Part 6 — Five Findings That Drive the Rest of the Project</h2>
+
+<div class="finding">
+  <p class="finding-number">Finding 1 — The 1-Hour Rule</p>
+  <p>Transactions within 1 hour of signup are fraudulent 99.52% of the time. This is the single most actionable insight from the entire dataset — implementable as an immediate rule-based flag with no model required.</p>
+</div>
+
+<div class="finding">
+  <p class="finding-number">Finding 2 — Geographic Concentration</p>
+  <p>Five countries (Luxembourg, Ecuador, Tunisia, Peru, Bolivia) show fraud rates 3–4× the global average. Country-of-origin is a high-signal, low-cost feature that should be in every model.</p>
+</div>
+
+<div class="finding">
+  <p class="finding-number">Finding 3 — Direct Traffic Anomaly</p>
+  <p>Direct-channel users commit fraud at 10.54% vs 8.93% for SEO users. Small but consistent — suggests programmatic or automated account creation bypassing referral tracking.</p>
+</div>
+
+<div class="finding">
+  <p class="finding-number">Finding 4 — Card Testing in Credit Card Data</p>
+  <p>Median fraud amount ($9.82) is far below the legitimate median ($22.00), while mean fraud ($123.87) exceeds the legitimate mean ($88.41). This bimodal pattern is the signature of card-testing behavior.</p>
+</div>
+
+<div class="finding">
+  <p class="finding-number">Finding 5 — PCA Feature Hierarchy</p>
+  <p>V17, V14, V12, V10 are the dominant fraud signals in the credit card data. SHAP analysis in Phase 3 will decode what these latent components represent in behavioral terms.</p>
+</div>
+
+<hr>
+
+<h2>What Comes Next</h2>
+
+<p>The preprocessing pipeline is complete. All splits are saved and versioned. The next phase — model building — will train Logistic Regression as an interpretable baseline and XGBoost/LightGBM as the primary ensemble model, evaluated with AUC-PR and F1-Score across 5-fold stratified cross-validation.</p>
+
+<table>
+  <thead><tr><th>Phase</th><th>Task</th><th>Key Metrics</th></tr></thead>
+  <tbody>
+    <tr><td>Interim 2</td><td>Logistic Regression + XGBoost/LightGBM</td><td>AUC-PR, F1, Confusion Matrix</td></tr>
+    <tr><td>Final</td><td>SHAP explainability + recommendations</td><td>Feature importance, force plots</td></tr>
+  </tbody>
+</table>
+
+<hr>
+
+<p>
+  <strong>GitHub:</strong> <a href="https://github.com/maedotamha/Fraud-Cases">github.com/maedotamha/Fraud-Cases</a><br>
+  All three Task 1 notebooks are executed with full outputs — EDA, geolocation, feature engineering, and SMOTE.
+</p>
+
+<div class="footer">
+  Built with Python 3.11 · pandas · scikit-learn · imbalanced-learn · matplotlib · seaborn<br>
+  Adey Innovations Inc. · Fraud Detection Pipeline · Interim Report 1 · June 2026
+</div>
+
+</body>
+</html>
